@@ -1,4 +1,6 @@
-package foro.project.VargasAPI.dto;
+package foro.project.VargasAPI.controller.dto;
+
+import foro.project.VargasAPI.model.Mensaje;
 
 import java.time.LocalDateTime;
 

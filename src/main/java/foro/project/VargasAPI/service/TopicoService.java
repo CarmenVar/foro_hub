@@ -1,5 +1,6 @@
-package foro.project.VargasAPI.controller;
+package foro.project.VargasAPI.service;
 
+import foro.project.VargasAPI.controller.TopicoController;
 import foro.project.VargasAPI.controller.dto.*;
 import foro.project.VargasAPI.model.Curso;
 import foro.project.VargasAPI.model.Mensaje;
@@ -18,11 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class TopicoController {
+public class TopicoService {
 
     @Autowired
     private TopicoRepository topicoRepository;
@@ -30,13 +32,10 @@ public class TopicoController {
     @Autowired
     private MensajeRepository mensajeRepository;
 
-    public Topico registrarTopico(@javax.validation.constraints.NotNull DatosRegistroTopico datosRegistroTopico) {
-        // Verificar si ya existe un tópico con el mismo título y mensaje
+    public Topico registrarTopico(@NotNull DatosRegistroTopico datosRegistroTopico) {
         if (topicoRepository.existsByTituloAndMensajes_contenido(datosRegistroTopico.titulo(), datosRegistroTopico.mensaje())) {
-            // Lanzar una excepción indicando que el tópico ya existe
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El tópico ya existe.");
         }
-        // Si no existe, proceder a guardar el nuevo tópico
         Topico nuevoTopico = new Topico(datosRegistroTopico);
         return topicoRepository.save(nuevoTopico);
     }
@@ -57,7 +56,6 @@ public class TopicoController {
     public Page<DatosListadoTopico> buscarTopicosPorCurso(String nombreCurso, Pageable paginacion) {
         Curso curso;
         try {
-            // Convertir el String a Curso enum
             curso = Curso.valueOf(nombreCurso.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Curso inválido");
@@ -71,23 +69,15 @@ public class TopicoController {
 
     @Transactional
     public void actualizarTopico(Long id, DatosActualizarTopico datosActualizarTopico) {
-        // Buscar el tópico por su ID en el repositorio
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
-
-        // Actualizar el tópico con los nuevos datos
         topico.actualizarTopico(datosActualizarTopico);
-
-        // Guardar los cambios en el repositorio
         topicoRepository.save(topico);
     }
 
     public DatosListadoMensaje obtenerUltimoMensaje(Long id) {
-        // Buscar el tópico por su ID en el repositorio
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
-
-        // Obtener el último mensaje agregado al tópico (asumiendo que está en la última posición)
         List<Mensaje> mensajes = topico.getMensajes();
         if (!mensajes.isEmpty()) {
             Mensaje ultimoMensaje = mensajes.get(mensajes.size() - 1);
@@ -104,55 +94,33 @@ public class TopicoController {
 
     @Transactional
     public DatosListadoMensaje agregarMensaje(Long id, DatosNuevoMensaje datosNuevoMensaje) {
-        // Buscar el tópico por su ID en el repositorio
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
-
-        // Crear un nuevo mensaje con los datos proporcionados
         Mensaje nuevoMensaje = new Mensaje(datosNuevoMensaje);
-
-        // Añadir el mensaje al tópico
         topico.agregarMensaje(nuevoMensaje);
-
-        // Guardar el mensaje y el tópico en los repositorios
         topicoRepository.save(topico);
-        mensajeRepository.save(nuevoMensaje);  // No olvides guardar el mensaje también
+        mensajeRepository.save(nuevoMensaje);
         return new DatosListadoMensaje(nuevoMensaje);
     }
 
     @Transactional
     public void cerrarTopico(Long id) {
-        // Buscar el tópico por su ID
         Topico topico = topicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
-
-        // Marcar el tópico como "CERRADO"
         topico.cerrarTopico();
-
-        // Guardar el estado actualizado del tópico en el repositorio
         topicoRepository.save(topico);
     }
 
     @Transactional
     public void eliminarMensaje(Long idTopico, Long idMensaje) {
-        // Buscar el tópico por su ID en el repositorio
         Topico topico = topicoRepository.findById(idTopico)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tópico no encontrado"));
-
-        // Buscar el mensaje dentro de los mensajes del tópico
         Mensaje mensaje = topico.getMensajes().stream()
                 .filter(m -> m.getId().equals(idMensaje))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mensaje no encontrado"));
-
-        // Remover el mensaje de la lista de mensajes del tópico
         topico.getMensajes().remove(mensaje);
-
-        // Guardar los cambios en el repositorio del tópico
         topicoRepository.save(topico);
-
-        // Eliminar el mensaje de la base de datos
         mensajeRepository.deleteById(idMensaje);
     }
 }
-

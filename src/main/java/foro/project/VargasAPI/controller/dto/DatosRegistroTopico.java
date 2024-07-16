@@ -1,7 +1,8 @@
-package foro.project.VargasAPI.dto;
+package foro.project.VargasAPI.controller.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import foro.project.VargasAPI.model.Curso;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 public record DatosRegistroTopico(
         @NotBlank(message = "El título es obligatorio.")

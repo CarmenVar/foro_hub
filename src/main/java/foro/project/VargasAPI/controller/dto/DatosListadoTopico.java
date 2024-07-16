@@ -1,4 +1,7 @@
-package foro.project.VargasAPI.dto;
+package foro.project.VargasAPI.controller.dto;
+
+import foro.project.VargasAPI.model.Curso;
+import foro.project.VargasAPI.model.Topico;
 
 import java.util.List;
 import java.util.stream.Collectors;

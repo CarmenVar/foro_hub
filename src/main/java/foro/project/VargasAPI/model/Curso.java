@@ -1,4 +1,9 @@
 package foro.project.VargasAPI.model;
 
-public class Curso {
+public enum Curso {
+    JAVA,
+    JAVASCRIPT,
+    MYSQL,
+    SOFTSKILLS,
+    CSS
 }
